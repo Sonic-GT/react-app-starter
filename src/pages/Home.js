@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Home() {
     const [token, setToken] = useState(localStorage.getItem("token"));
 
     const navigate=useNavigate();
-    const API_URL = "http://localhost:5000";
     
     // const [jwt, setJwt] = useState(null);
 
