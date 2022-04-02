@@ -10,8 +10,7 @@ function Login() {
 
     function submit(event){
         event.preventDefault();
-        localStorage.removeItem("token");
-        fetch(`${API_URL}/auth/login`, {    //${process.env.REACT_APP_API_URL}  ;  navigate("/home");
+        fetch(`${API_URL}/auth/login`, {
             method: "POST",
             body: JSON.stringify(values),
             headers: { "Content-Type": "application/json" }

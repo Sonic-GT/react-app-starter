@@ -1,17 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import TableContainer from "../Services/TableContainer";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function Home() {
-    const [token, setToken] = useState(localStorage.getItem("token"));
+    const token = localStorage.getItem("token");
+    const [risposta, setRisposta] = useState({isReady: false});
+    const columns = React.useMemo(() => [
+        {
+            Header: "Targa",
+            accessor: "plate"
+        },{
+            Header: "Modello",
+            accessor: "carModel"
+        },{
+            Header: "Combustibile",
+            accessor: "fuel"
+        }], [])
 
-    const navigate=useNavigate();
-    
-    // const [jwt, setJwt] = useState(null);
+    useEffect(() => {
+        vehicle_info();
+    }, []);
 
-    function autentica(){
-        fetch(`${API_URL}/auth/me`, {
+    const vehicle_info = () => {
+        fetch(`${API_URL}/vehicle/query`, {
             method: "POST",
             headers: {"Authorization": token}
         }).then((response) => {
@@ -19,33 +31,52 @@ function Home() {
                 return response.json();
             }
             throw new Error ("Unauthorized");
-        })
-        .then((json) => {
-            console.log(json._id);
-            const user_id = json._id;
-            return (user_id)
-        }).catch((error) => {
-            navigate("/login");
+        }).then((json) => {
+            setRisposta({data: json.docs, isReady: true});
+        }).catch(() => {
+            setRisposta({data: "error", isReady: true});
         });
     }
 
-    // function eventHandler(){
-    //     setJwt(localStorage.getItem("token") || null)
-    // }
+    function make_table(info){
+        let data = [];
+        info.forEach((ele) => {
+            data.push({
+                plate: ele.plate,
+                carModel: ele.carModel,
+                fuel: ele.fuel[0]
+            })
+        });
+        
+        return (data)
+    }
 
-    // useEffect(() => {
-    //     setJwt(localStorage.getItem("token") || null)
-    //     window.addEventListener("storage", eventHandler, false)
-    //     console.log("Test");
-    // }, [])
+    if (!risposta.isReady){
+        return(
+            // <div>
+            //     <h1>Loading vehicle list...</h1>
+            // </div>
+            <></>
+        )
+    } else if (risposta.data !== "error"){
+        const data = make_table(risposta.data);
 
-    autentica();
+        return(
+            <>
+                <div>
+                    <h1>Tabella Veicoli</h1>
+                </div>
+                <TableContainer columns={columns} data={data} />
+            </>
+        )
 
-    return(
-        <div>
-            <h1>Test Home</h1>
-        </div>
-    );
+    } else {
+        return(
+            <div>
+                <h1>Request Error</h1>
+            </div>
+        )
+    }
 }
 
 export default Home;
