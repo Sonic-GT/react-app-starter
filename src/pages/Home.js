@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TableContainer from "../Services/TableContainer";
 import ReactSwitch from "react-switch";
-import { toBeChecked } from "@testing-library/jest-dom/dist/matchers";
+// import NewTable from "../Services/NewTable";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,6 +10,8 @@ function Home() {
     const [risposta, setRisposta] = useState({isReady: false});
     const [trash, setTrash] = useState({checked: false});
     const [label, setLabel] = useState("");
+    const [page, setPage] = useState(1);
+    const [max, setMax] = useState(1)
 
     const columns = React.useMemo(() => [
         {
@@ -24,15 +26,18 @@ function Home() {
         }], [])
 
     useEffect(() => {
-        vehicle_info();
+        const datajson = JSON.stringify({
+            "page": page,
+        });
+        vehicle_info(datajson);
         if (trash.checked){
             setLabel("Vedi articoli")
         } else {
             setLabel("Vedi cestino")
         }
-    }, [trash.checked]);
+    }, [trash.checked, page]);
 
-    const vehicle_info = () => {
+    const vehicle_info = (datajson) => {
         let link = "";
 
         if (trash.checked){
@@ -45,7 +50,8 @@ function Home() {
         
         fetch(`${API_URL}/vehicle/${link}`, {
             method: "POST",
-            headers: {"Authorization": token}
+            headers: {"Authorization": token, "Content-type": "application/json"},
+            body: datajson
         }).then((response) => {
             if (response.ok){
                 return response.json();
@@ -53,6 +59,7 @@ function Home() {
             throw new Error ("Unauthorized");
         }).then((json) => {
             setRisposta({data: json.docs, isReady: true});
+            setMax(json.pages);
         }).catch(() => {
             setRisposta({data: "error", isReady: true});
         });
@@ -79,12 +86,27 @@ function Home() {
         }
     }
 
+    function nextPage() {
+        let p = page
+        if (p < max){
+            setPage(p += 1);
+        }
+    }
+
+    function prevPage() {
+        let p = page
+        if (p > 1){
+            setPage(p -= 1);
+        }
+    }
+
     if (!risposta.isReady){
         return(
-            // <div>
-            //     <h1>Loading vehicle list...</h1>
-            // </div>
-            <></>
+            <>
+            <div>
+                <h1>Loading vehicle list...</h1>
+            </div>
+            </>
         )
     } else if (risposta.data !== "error"){
         const data = make_table(risposta.data);
@@ -98,7 +120,10 @@ function Home() {
                     <p>{label}</p>
                     <ReactSwitch onChange={handleTrash} checked = {trash.checked} />
                 </div>
+                {/* <TableContainer columns={columns} data={data} /> */}
                 <TableContainer columns={columns} data={data} />
+                <button onClick={prevPage}>{"<"}</button>
+                <button onClick={nextPage}>{">"}</button>
             </>
         )
 
