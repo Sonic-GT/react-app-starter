@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import TableContainer from "../Services/TableContainer";
+import ReactSwitch from "react-switch";
+import { toBeChecked } from "@testing-library/jest-dom/dist/matchers";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function Home() {
     const token = localStorage.getItem("token");
     const [risposta, setRisposta] = useState({isReady: false});
+    const [trash, setTrash] = useState({checked: false});
+
     const columns = React.useMemo(() => [
         {
             Header: "Targa",
@@ -20,10 +24,16 @@ function Home() {
 
     useEffect(() => {
         vehicle_info();
-    }, []);
+    }, [trash.checked]);
 
     const vehicle_info = () => {
-        fetch(`${API_URL}/vehicle/query`, {
+        let link = "";
+
+        if (trash.checked){
+            link = "trash"
+        } else { link = "query" }
+
+        fetch(`${API_URL}/vehicle/${link}`, {
             method: "POST",
             headers: {"Authorization": token}
         }).then((response) => {
@@ -51,6 +61,14 @@ function Home() {
         return (data)
     }
 
+    function handleTrash() {
+        if (trash.checked){
+            setTrash({checked: false});
+        } else {
+            setTrash({checked: true});
+        }
+    }
+
     if (!risposta.isReady){
         return(
             // <div>
@@ -65,6 +83,10 @@ function Home() {
             <>
                 <div>
                     <h1>Tabella Veicoli</h1>
+                </div>
+                <div>
+                    <p>View trash</p>
+                    <ReactSwitch onChange={handleTrash} checked = {trash.checked} />
                 </div>
                 <TableContainer columns={columns} data={data} />
             </>
