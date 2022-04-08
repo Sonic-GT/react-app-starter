@@ -32,7 +32,7 @@ function autentica(){
         return (user_id)
     }).catch((error) => {
         localStorage.removeItem("token");
-        alert("Token scaduto");
+        alert("Token non valido!");
         navigate("/login");
     });
   }

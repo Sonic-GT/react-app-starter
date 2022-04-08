@@ -9,6 +9,7 @@ function Home() {
     const token = localStorage.getItem("token");
     const [risposta, setRisposta] = useState({isReady: false});
     const [trash, setTrash] = useState({checked: false});
+    const [label, setLabel] = useState("");
 
     const columns = React.useMemo(() => [
         {
@@ -24,15 +25,24 @@ function Home() {
 
     useEffect(() => {
         vehicle_info();
+        if (trash.checked){
+            setLabel("Vedi articoli")
+        } else {
+            setLabel("Vedi cestino")
+        }
     }, [trash.checked]);
 
     const vehicle_info = () => {
         let link = "";
 
         if (trash.checked){
-            link = "trash"
-        } else { link = "query" }
-
+            link = "trash";
+            setLabel("Vedi articoli")
+        } else {
+            link = "query";
+            setLabel("Vedi cestino")
+        }
+        
         fetch(`${API_URL}/vehicle/${link}`, {
             method: "POST",
             headers: {"Authorization": token}
@@ -85,7 +95,7 @@ function Home() {
                     <h1>Tabella Veicoli</h1>
                 </div>
                 <div>
-                    <p>View trash</p>
+                    <p>{label}</p>
                     <ReactSwitch onChange={handleTrash} checked = {trash.checked} />
                 </div>
                 <TableContainer columns={columns} data={data} />
