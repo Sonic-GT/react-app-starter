@@ -11,7 +11,6 @@ function Home() {
     const [trash, setTrash] = useState({checked: false});
     const [label, setLabel] = useState("");
     const [page, setPage] = useState(1);
-    const [max, setMax] = useState(1)
 
     const columns = React.useMemo(() => [
         {
@@ -26,6 +25,7 @@ function Home() {
         }], [])
 
     useEffect(() => {
+        setPage(1);
         const datajson = JSON.stringify({
             "page": page,
         });
@@ -35,7 +35,14 @@ function Home() {
         } else {
             setLabel("Vedi cestino")
         }
-    }, [trash.checked, page]);
+    }, [trash.checked]);
+
+    useEffect(() => {
+        const datajson = JSON.stringify({
+            "page": page,
+        });
+        vehicle_info(datajson);
+    }, [page])
 
     const vehicle_info = (datajson) => {
         let link = "";
@@ -58,8 +65,7 @@ function Home() {
             }
             throw new Error ("Unauthorized");
         }).then((json) => {
-            setRisposta({data: json.docs, isReady: true});
-            setMax(json.pages);
+            setRisposta({data: json.docs, isEmpty: json.isEmpty, isReady: true});
         }).catch(() => {
             setRisposta({data: "error", isReady: true});
         });
@@ -88,7 +94,7 @@ function Home() {
 
     function nextPage() {
         let p = page
-        if (p < max){
+        if (!risposta.isEmpty){
             setPage(p += 1);
         }
     }
